@@ -14,13 +14,21 @@ import (
 
 var (
 	EXHIBIT_PREFIX = "exhibit."
+	SIGN_PREFIX    = "sign."
 	VALUE_SUFFIX   = ".value"
 
 	VARIABLE_REGEX = regexp.MustCompile(`{{\s*([\w\._-]+)\s*}}`)
 )
 
+type Template struct {
+	Vars     []string
+	Exhibits []string
+	Signing  []string
+}
+
 // return list of all variables and exhibits found in contract template
-func parseTemplate(b []byte) (vars []string, exhibits []string) {
+func parseTemplate(b []byte) Template {
+	var template Template
 	matches := VARIABLE_REGEX.FindAllStringSubmatch(string(b), -1)
 	for _, m := range matches {
 		match := m[1]
@@ -29,14 +37,16 @@ func parseTemplate(b []byte) (vars []string, exhibits []string) {
 			exhibitName := strings.TrimPrefix(match, EXHIBIT_PREFIX)
 			// only append if it doesn't have .value
 			if !strings.HasSuffix(exhibitName, VALUE_SUFFIX) {
-				exhibits = appendNew(exhibits, exhibitName)
+				template.Exhibits = appendNew(template.Exhibits, exhibitName)
 			}
+		} else if strings.HasPrefix(match, SIGN_PREFIX) {
+			signName := strings.TrimPrefix(match, SIGN_PREFIX)
+			template.Signing = appendNew(template.Signing, signName)
 		} else {
-			vars = appendNew(vars, match)
+			template.Vars = appendNew(template.Vars, match)
 		}
 	}
-
-	return
+	return template
 }
 
 // copy the template into a new dir and instantiate params file with empty values
@@ -67,7 +77,7 @@ func newContract(cmd *cobra.Command, args []string) error {
 	}
 
 	// get list of variables for a blank config file
-	vars, exhibits := parseTemplate(b)
+	tmpl := parseTemplate(b)
 
 	// write the header comment
 	paramsFile := "# This is a TOML file containing parameters for this contract\n\n"
@@ -81,7 +91,7 @@ func newContract(cmd *cobra.Command, args []string) error {
 
 	// write the vars
 	paramsFile += "[var]\n"
-	for _, v := range vars {
+	for _, v := range tmpl.Vars {
 		paramsFile += fmt.Sprintf(`%s = ""`, v)
 		paramsFile += "\n"
 	}
@@ -89,7 +99,15 @@ func newContract(cmd *cobra.Command, args []string) error {
 
 	paramsFile += "[exhibit]\n"
 	// write the exhibits
-	for _, e := range exhibits {
+	for _, e := range tmpl.Exhibits {
+		paramsFile += fmt.Sprintf(`%s = ""`, e)
+		paramsFile += "\n"
+	}
+	paramsFile += "\n\n"
+
+	paramsFile += "[sign]\n"
+	// write the signing values
+	for _, e := range tmpl.Signing {
 		paramsFile += fmt.Sprintf(`%s = ""`, e)
 		paramsFile += "\n"
 	}
@@ -119,7 +137,8 @@ func compileContract(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	_, exhibits := parseTemplate(b)
+	tmpl := parseTemplate(b)
+	exhibits := tmpl.Exhibits
 
 	// substitute params into template holes
 	var missingParams []string
@@ -147,6 +166,12 @@ func compileContract(cmd *cobra.Command, args []string) error {
 						return []byte(fmt.Sprintf("Exhibit %d", i+1))
 					}
 				}
+			}
+		} else if strings.HasPrefix(paramName, SIGN_PREFIX) {
+			signName := strings.TrimPrefix(paramName, SIGN_PREFIX)
+			paramVal := params.GetString("sign." + signName)
+			if paramVal != "" {
+				return []byte(paramVal)
 			}
 		} else {
 			paramVal := params.GetString("var." + paramName)

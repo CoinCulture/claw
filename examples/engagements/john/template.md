@@ -19,7 +19,29 @@ Consultant shall not be authorized to incur on behalf of the Company any expense
 
 Consultant shall serve as a consultant to the Company for a period commencing on {{start-date}} and terminating on the earlier of (a) the date Consultant completes the provision of the Services to the Company under this Agreement, or (b) the date Consultant shall have been paid the maximum amount of consulting fees as provided in {{exhibit.compensation}} hereto.
 
+\pagebreak
+
+# Signatures
+
+## THE COMPANY
+
+My Corp Inc.
+
+\ ![Company Signature]({{sign.image}})
+
 ---
+
+By: {{sign.company-signer}}
+
+
+## CONSULTANT
+
+{{consultant}}
+
+---
+
+{{email}}
+
 
 \pagebreak
 
@@ -29,8 +51,6 @@ Consultant shall serve as a consultant to the Company for a period commencing on
 
 {{exhibit.services.value}}
 
----
-
 \pagebreak
 
 # {{exhibit.compensation}}
@@ -39,8 +59,6 @@ Consultant shall serve as a consultant to the Company for a period commencing on
 
 {{exhibit.compensation.value}}
 
----
-
 \pagebreak
 
 # {{exhibit.expenses}}
@@ -48,6 +66,3 @@ Consultant shall serve as a consultant to the Company for a period commencing on
 ## ALLOWABLE EXPENSES
 
 {{exhibit.expenses.value}}
-
----
-

@@ -4,16 +4,22 @@
 
 [meta]
 # This must match the hash of the local template.md file. DO NOT CHANGE IT
-template = "92C717D972698D79140F54B29AB01EC009624ECADAC6CA9660522C7E7DB10816"
+template = "640E3544AF323CB65AB3916400A756BE82D085D5D94415CA5BCFA69905F780FF"
 
 [var]
 date = "2017-01-01"
 consultant = "John Smith"
 schedule = "Full time"
 start-date = "2017-01-15"
+email = "john@smith.com"
 
 
 [exhibit]
 services = "Software engineering"
 compensation = "$100/hr"
 expenses = "$500/month"
+
+
+[sign]
+image = "examples/signature/franklin.png"
+company-signer = "Ben Franklin, President, bf@usa.com"
