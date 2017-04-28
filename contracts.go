@@ -42,10 +42,10 @@ func parseTemplate(b []byte) (vars []string, exhibits []string) {
 // copy the template into a new dir and instantiate params file with empty values
 func newContract(cmd *cobra.Command, args []string) error {
 	if len(args) != 2 {
-		return fmt.Errorf("new expects two args: name and template path")
+		return fmt.Errorf("new expects two args: directory for new engagement and template path")
 	}
 
-	name, tmplPath := args[0], args[1]
+	engagementPath, tmplPath := args[0], args[1]
 
 	b, err := ioutil.ReadFile(tmplPath)
 	if err != nil {
@@ -58,11 +58,11 @@ func newContract(cmd *cobra.Command, args []string) error {
 	templateHash := h.Sum(nil)
 
 	// Make the directory and copy over the template
-	if err := os.Mkdir(name, 0700); err != nil {
+	if err := os.MkdirAll(engagementPath, 0700); err != nil {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(name, tmplPath), b, 0600); err != nil {
+	if err := ioutil.WriteFile(path.Join(engagementPath, "template.md"), b, 0600); err != nil {
 		return err
 	}
 
@@ -95,7 +95,7 @@ func newContract(cmd *cobra.Command, args []string) error {
 	}
 
 	// write the params file
-	return ioutil.WriteFile(path.Join(name, "params.toml"), []byte(paramsFile), 0600)
+	return ioutil.WriteFile(path.Join(engagementPath, "params.toml"), []byte(paramsFile), 0600)
 }
 
 //-----------------------------------------
