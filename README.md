@@ -23,9 +23,6 @@ cflow new john template.md
 # edit the params
 vi john/params.toml
 
-# compile the final markdown
-cflow compile john
-
-# compile the pdf
-pandoc john/contract.md --latex-engine=xelatex -o john/contract.pdf
+# compile the markdown and output a final pdf using pandoc
+cflow compile --output pdf john
 ```

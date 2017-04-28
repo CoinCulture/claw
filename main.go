@@ -9,6 +9,7 @@ import (
 
 //global flag
 var logLevel string
+var outputType string
 
 var RootCmd = &cobra.Command{
 	Use:   "cflow",
@@ -33,6 +34,8 @@ var compileCmd = &cobra.Command{
 func init() {
 	//parse flag and set config
 	RootCmd.PersistentFlags().StringVar(&logLevel, "log_level", "info", "Log level")
+
+	compileCmd.Flags().StringVar(&outputType, "output", "md", "Output type: md | html | pdf")
 
 	RootCmd.AddCommand(newCmd)
 	RootCmd.AddCommand(compileCmd)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -189,11 +190,29 @@ func compileContract(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("Missing params: %v", missingParams)
 	}
 
-	// TODO: option to write html
-	// htmlOutput := markdown2html(markdownOutput)
-
-	if err := ioutil.WriteFile(path.Join(name, "contract.md"), markdownOutput, 0600); err != nil {
-		return err
+	switch outputType {
+	case "md":
+		if err := ioutil.WriteFile(path.Join(name, "contract.md"), markdownOutput, 0600); err != nil {
+			return err
+		}
+	case "html":
+		htmlOutput := markdown2html(markdownOutput)
+		if err := ioutil.WriteFile(path.Join(name, "contract.html"), htmlOutput, 0600); err != nil {
+			return err
+		}
+	case "pdf":
+		// requires the md to be written
+		mdPath := path.Join(name, "contract.md")
+		if err := ioutil.WriteFile(mdPath, markdownOutput, 0600); err != nil {
+			return err
+		}
+		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", path.Join(name, "contract.pdf"))
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
+	default:
+		return fmt.Errorf("Unknown output format: %v", outputType)
 	}
+
 	return nil
 }
