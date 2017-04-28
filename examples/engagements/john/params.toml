@@ -1,0 +1,19 @@
+# This is a TOML file containing parameters for this contract
+
+
+
+[meta]
+# This must match the hash of the local template.md file. DO NOT CHANGE IT
+template = "92C717D972698D79140F54B29AB01EC009624ECADAC6CA9660522C7E7DB10816"
+
+[var]
+date = "2017-01-01"
+consultant = "John Smith"
+schedule = "Full time"
+start-date = "2017-01-15"
+
+
+[exhibit]
+services = "Software engineering"
+compensation = "$100/hr"
+expenses = "$500/month"
