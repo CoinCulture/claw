@@ -11,8 +11,6 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
-
-	"github.com/spf13/cobra"
 )
 
 var (
@@ -54,12 +52,7 @@ func parseTemplate(b []byte) ContractTemplate {
 }
 
 // copy the template into a new dir and instantiate params file with empty values
-func newContract(cmd *cobra.Command, args []string) error {
-	if len(args) != 2 {
-		return fmt.Errorf("new expects two args: directory for new engagement and template path")
-	}
-
-	engagementPath, tmplPath := args[0], args[1]
+func newEngagement(engagementPath, tmplPath string) error {
 
 	b, err := ioutil.ReadFile(tmplPath)
 	if err != nil {
@@ -127,12 +120,7 @@ template = "{{ .TemplateHash}}"
 
 //-----------------------------------------
 
-func compileContract(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("compile expects one arg: name")
-	}
-
-	name := args[0]
+func generateContract(name, outputType string) error {
 
 	// load the params from toml file
 	params, err := loadConfig(name)
