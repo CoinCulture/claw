@@ -1,4 +1,4 @@
-# Contract Flow
+# claw - Command Line Law
 
 ## Install
 
@@ -20,11 +20,11 @@ sudo apt-get install texlive-xetex
 
 ```
 # initaite a new contract
-cflow new john template.md
+claw new john examples/template/consultant.md
 
 # edit the params
 vim john/params.toml
 
 # compile the markdown and output a final pdf using pandoc
-cflow compile --output pdf john
+claw compile --output pdf john
 ```
