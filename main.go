@@ -12,8 +12,8 @@ var logLevel string
 var outputType string
 
 var RootCmd = &cobra.Command{
-	Use:   "cflow",
-	Short: "Contracts in the Command Line",
+	Use:   "claw",
+	Short: "Command Line Law",
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		// set the log level
 	},

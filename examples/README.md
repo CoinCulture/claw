@@ -2,7 +2,7 @@
 
 `templates/` contain markdown templates.
 
-`engagements/` contain output of `cflow`.
+`engagements/` contain output of `claw`.
 
 
 
