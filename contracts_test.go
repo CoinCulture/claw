@@ -100,6 +100,17 @@ func TestOutputTypeMarkdown(t *testing.T) {
 		t.Fatalf("Error: %v\n", err)
 	}
 
+	// check that contract.md is the expected contract, given
+	// the populated params.toml
+	contractDotMDBytes, err := ioutil.ReadFile(filepath.Join(engagementName, "contract.md"))
+	if err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	if !bytes.Equal(contractDotMDBytes, []byte(filledOutMarkdownContract)) {
+		t.Fatalf("Bad contract.md:\nGot: %s\nExpected: %s\n", string(contractDotMDBytes), filledOutMarkdownContract)
+	}
+
 }
 
 func TestOutputTypePDF(t *testing.T) {
@@ -109,26 +120,55 @@ func TestOutputTypeHTML(t *testing.T) {
 }
 
 // -------------- test constants -------------------------
+
+// sampleContractTemplate should
+// generate exactly this file!
+const sampleParamsOutput = `# This is a TOML file containing parameters for this contract
+
+[meta]
+# This must match the hash of the local template.md file. DO NOT CHANGE IT
+template = "8D77AF0A1D4AA369482378F6FFA6232B8AE1E5CEAC4541EC1DCF80A571FC9F33"
+
+[var]
+Date = ""
+Consultant = ""
+Schedule = ""
+StartDate = ""
+Email = ""
+
+
+[exhibit]
+Services = ""
+Compensation = ""
+Expenses = ""
+
+
+[sign]
+Image = ""
+CompanySigner = ""
+`
+
+// this should generate the params.toml
 const sampleContractTemplate = `# My Corp Inc.
 # CONSULTING AGREEMENT
 
-This Consulting Agreement (this "Agreement") is made as of {{ .Var.date}}, by and between My Corp, Inc., a Delaware corporation (the "Company"), and {{ .Var.consultant}} ("Consultant").
+This Consulting Agreement (this "Agreement") is made as of {{ .Var.Date}}, by and between My Corp, Inc., a Delaware corporation (the "Company"), and {{ .Var.Consultant}} ("Consultant").
 
-# Consulting Relationship.  
+# Consulting Relationship.
 
-During the term of this Agreement, Consultant will provide consulting services to the Company as described on {{ .Exhibit.services}} hereto (the "Services").  Consultant represents that Consultant is duly licensed (as applicable) and has the qualifications, the experience and the ability to properly perform the Services.  Consultant shall use Consultant’s best efforts to perform the Services such that the results are satisfactory to the Company.  {{ .Var.schedule}}, or updated with 14 days prior notice.
+During the term of this Agreement, Consultant will provide consulting services to the Company as described on {{ .Exhibit.Services}} hereto (the "Services").  Consultant represents that Consultant is duly licensed (as applicable) and has the qualifications, the experience and the ability to properly perform the Services.  Consultant shall use Consultant’s best efforts to perform the Services such that the results are satisfactory to the Company.  {{ .Var.Schedule}}, or updated with 14 days prior notice.
 
-# Fees.  
+# Fees.
 
-As consideration for the Services to be provided by Consultant and other obligations, the Company shall pay to Consultant the amounts specified in {{ .Exhibit.compensation}} hereto at the times specified therein.
+As consideration for the Services to be provided by Consultant and other obligations, the Company shall pay to Consultant the amounts specified in {{ .Exhibit.Compensation}} hereto at the times specified therein.
 
-# Expenses.  
+# Expenses.
 
-Consultant shall not be authorized to incur on behalf of the Company any expenses and will be responsible for all expenses incurred while performing the Services except as expressly specified in {{ .Exhibit.expenses}} hereto unless otherwise agreed to by the Company's CEO, which consent shall be evidenced in writing for any such expenses in excess of $0.00.  As a condition to receipt of reimbursement, Consultant shall be required to submit to the Company reasonable evidence that the amount involved was both reasonable and necessary to the Services provided under this Agreement.
+Consultant shall not be authorized to incur on behalf of the Company any expenses and will be responsible for all expenses incurred while performing the Services except as expressly specified in {{ .Exhibit.Expenses}} hereto unless otherwise agreed to by the Company's CEO, which consent shall be evidenced in writing for any such expenses in excess of $0.00.  As a condition to receipt of reimbursement, Consultant shall be required to submit to the Company reasonable evidence that the amount involved was both reasonable and necessary to the Services provided under this Agreement.
 
-# Term and Termination.  
+# Term and Termination.
 
-Consultant shall serve as a consultant to the Company for a period commencing on {{ .Var.start-date}} and terminating on the earlier of (a) the date Consultant completes the provision of the Services to the Company under this Agreement, or (b) the date Consultant shall have been paid the maximum amount of consulting fees as provided in {{ .Exhibit.compensation}} hereto.
+Consultant shall serve as a consultant to the Company for a period commencing on {{ .Var.StartDate}} and terminating on the earlier of (a) the date Consultant completes the provision of the Services to the Company under this Agreement, or (b) the date Consultant shall have been paid the maximum amount of consulting fees as provided in {{ .Exhibit.Compensation}} hereto.
 
 \pagebreak
 
@@ -138,97 +178,140 @@ Consultant shall serve as a consultant to the Company for a period commencing on
 
 My Corp Inc.
 
-\ ![Company Signature]({{ .Sign.image}})
+\ ![Company Signature]({{ .Sign.Image}})
 
 ---
 
-By: {{ .Sign.company-signer}}
+By: {{ .Sign.CompanySigner}}
 
 
 ## CONSULTANT
 
-{{ .Var.consultant}}
+{{ .Var.Consultant}}
 
 ---
 
-{{ .Var.email}}
+{{ .Var.Email}}
 
 
 \pagebreak
 
-# {{ .Exhibit.services}}
+# {{ .Exhibit.Services}}
 
 ## DESCRIPTION OF CONSULTING SERVICES
 
-{{ .Exhibit.services.value}}
+{{ .Exhibit.Services}}
 
 \pagebreak
 
-# {{ .Exhibit.compensation}}
+# {{ .Exhibit.Compensation}}
 
 ## COMPENSATION
 
-{{ .Exhibit.compensation.value}}
+{{ .Exhibit.Compensation}}
 
 \pagebreak
 
-# {{ .Exhibit.expenses}}
+# {{ .Exhibit.Expenses}}
 
 ## ALLOWABLE EXPENSES
 
-{{ .Exhibit.expenses.value}}
+{{ .Exhibit.Expenses}}
 `
 
-// sampleContractTemplate should
-// generate exactly this file!
-const sampleParamsOutput = `# This is a TOML file containing parameters for this contract
-
-[meta]
-# This must match the hash of the local template.md file. DO NOT CHANGE IT
-template = "7E1C6EC0F1D68D1E00410C8F4DDBD99913FE23AA9C75FA5D299AE823B05DE65E"
-
-[var]
-date = ""
-consultant = ""
-schedule = ""
-start-date = ""
-email = ""
-
-
-[exhibit]
-services = ""
-compensation = ""
-expenses = ""
-
-
-[sign]
-image = ""
-company-signer = ""
-`
-
-// TODO ^ change company-signer from "" to [] (string slice)
-
+// after running [claw new], the params.toml should be edited
 const filledOutParamsToml = `# This is a TOML file containing parameters for this contract
 
 [meta]
 # This must match the hash of the local template.md file. DO NOT CHANGE IT
-template = "7E1C6EC0F1D68D1E00410C8F4DDBD99913FE23AA9C75FA5D299AE823B05DE65E"
+template = "8D77AF0A1D4AA369482378F6FFA6232B8AE1E5CEAC4541EC1DCF80A571FC9F33"
 
 [var]
-date = "2017-05-04"
-consultant = "John Smith"
-schedule = "Full Time"
-start-date = "2017-06-05"
-email = "john@smith.com"
+Date = "2017-05-04"
+Consultant = "John Smith"
+Schedule = "Full Time"
+StartDate = "2017-06-05"
+Email = "john@smith.com"
 
 
 [exhibit]
-services = "Software Development"
-compensation = "$100/hr"
-expenses = "$200/month"
+Services = "Software Development"
+Compensation = "$100/hr"
+Expenses = "$200/month"
 
 
 [sign]
-image = "examples/franklin.png"
-company-signer = "Ben Franklin, President, bf@usa.gov"
+Image = "examples/franklin.png"
+CompanySigner = "Ben Franklin, President, bf@usa.gov"
+`
+
+// then running [claw compile] will generate this contract
+const filledOutMarkdownContract = `# My Corp Inc.
+# CONSULTING AGREEMENT
+
+This Consulting Agreement (this "Agreement") is made as of 2017-05-04, by and between My Corp, Inc., a Delaware corporation (the "Company"), and John Smith ("Consultant").
+
+# Consulting Relationship.
+
+During the term of this Agreement, Consultant will provide consulting services to the Company as described on Software Development hereto (the "Services").  Consultant represents that Consultant is duly licensed (as applicable) and has the qualifications, the experience and the ability to properly perform the Services.  Consultant shall use Consultant’s best efforts to perform the Services such that the results are satisfactory to the Company.  Full Time, or updated with 14 days prior notice.
+
+# Fees.
+
+As consideration for the Services to be provided by Consultant and other obligations, the Company shall pay to Consultant the amounts specified in $100/hr hereto at the times specified therein.
+
+# Expenses.
+
+Consultant shall not be authorized to incur on behalf of the Company any expenses and will be responsible for all expenses incurred while performing the Services except as expressly specified in $200/month hereto unless otherwise agreed to by the Company's CEO, which consent shall be evidenced in writing for any such expenses in excess of $0.00.  As a condition to receipt of reimbursement, Consultant shall be required to submit to the Company reasonable evidence that the amount involved was both reasonable and necessary to the Services provided under this Agreement.
+
+# Term and Termination.
+
+Consultant shall serve as a consultant to the Company for a period commencing on 2017-06-05 and terminating on the earlier of (a) the date Consultant completes the provision of the Services to the Company under this Agreement, or (b) the date Consultant shall have been paid the maximum amount of consulting fees as provided in $100/hr hereto.
+
+\pagebreak
+
+# Signatures
+
+## THE COMPANY
+
+My Corp Inc.
+
+\ ![Company Signature](examples/franklin.png)
+
+---
+
+By: Ben Franklin, President, bf@usa.gov
+
+
+## CONSULTANT
+
+John Smith
+
+---
+
+john@smith.com
+
+
+\pagebreak
+
+# Software Development
+
+## DESCRIPTION OF CONSULTING SERVICES
+
+Software Development
+
+\pagebreak
+
+# $100/hr
+
+## COMPENSATION
+
+$100/hr
+
+\pagebreak
+
+# $200/month
+
+## ALLOWABLE EXPENSES
+
+$200/month
 `

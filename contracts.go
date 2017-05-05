@@ -153,97 +153,40 @@ template = "{{ .TemplateHash}}"
 func generateContract(engagementName, outputType string) error {
 
 	// load the params from toml file
-	// [zr] this ought to return a struct that can be
-	// passed into the template, or we can fill in the struct afterwards ... ?
 	params, err := loadConfig(engagementName)
 	if err != nil {
-		return fmt.Errorf("wtf1:%v", err)
+		return err
 	}
 
 	var contractValues *WriteContractTemplate
+	var contractTemplate *template.Template
+	var buffer bytes.Buffer
 
+	// fill that struct up
 	if err := params.Unmarshal(&contractValues); err != nil {
-		return fmt.Errorf("wtf2:%v", err)
-		//return err
+		return err
 	}
-
-	fmt.Printf("contract values %v", contractValues)
 
 	// read the contract template
 	contractTemplateBytes, err := ioutil.ReadFile(filepath.Join(engagementName, "template.md"))
 	if err != nil {
-		return fmt.Errorf("wtf3:%v", err)
-		//return err
+		return err
 	}
-
-	fmt.Println(string(contractTemplateBytes))
-
-	var contractTemplate *template.Template
-	var buffer bytes.Buffer
 
 	contractTemplate, err = template.New("contract").Parse(string(contractTemplateBytes))
 	if err != nil {
-		return fmt.Errorf("wtf4:%v", err)
+		return err
 	}
 
 	if err := contractTemplate.Execute(&buffer, *contractValues); err != nil {
-		return fmt.Errorf("wtf5:%v", err)
+		return err
 	}
-	fmt.Printf("string: %v", buffer.String())
 	markdownOutput := buffer.Bytes()
-
-	/*
-		tmpl := parseTemplate(b)
-		exhibits := tmpl.Exhibits
-
-		// substitute params into template holes
-		var missingParams []string
-		markdownOutput := VARIABLE_REGEX.ReplaceAllFunc(b, func(in []byte) []byte {
-			paramName := strings.TrimSuffix(strings.TrimPrefix(string(in), "{{"), "}}")
-
-			// if its an exhibit, we replace it with the exhibit number.
-			// if its a var, we replace it with its value
-			if strings.HasPrefix(paramName, EXHIBIT_PREFIX) {
-				exhibitName := strings.TrimPrefix(paramName, EXHIBIT_PREFIX)
-
-				if strings.HasSuffix(exhibitName, VALUE_SUFFIX) {
-					exhibitName = strings.TrimSuffix(exhibitName, VALUE_SUFFIX)
-					for _, e := range exhibits {
-						if exhibitName == e {
-							exhibitValue := params.GetString("exhibit." + exhibitName)
-							if exhibitValue != "" {
-								return []byte(exhibitValue)
-							}
-						}
-					}
-				} else {
-					for i, e := range exhibits {
-						if exhibitName == e {
-							return []byte(fmt.Sprintf("Exhibit %d", i+1))
-						}
-					}
-				}
-			} else if strings.HasPrefix(paramName, SIGN_PREFIX) {
-				signName := strings.TrimPrefix(paramName, SIGN_PREFIX)
-				paramVal := params.GetString("sign." + signName)
-				if paramVal != "" {
-					return []byte(paramVal)
-				}
-			} else {
-				paramVal := params.GetString("var." + paramName)
-				if paramVal != "" {
-					return []byte(paramVal)
-				}
-			}
-
-			missingParams = append(missingParams, paramName)
-			return []byte("----")
-		})*/
 
 	// error if params is missing anything
 	// [zr] not sure how this will get handled by new template format ...
 	//if len(missingParams) > 0 {
-	//	return fmt.Errorf("Missing params: %v", missingParams)
+	//      return fmt.Errorf("Missing params: %v", missingParams)
 	//}
 
 	switch outputType {
