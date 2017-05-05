@@ -127,7 +127,7 @@ const sampleParamsOutput = `# This is a TOML file containing parameters for this
 
 [meta]
 # This must match the hash of the local template.md file. DO NOT CHANGE IT
-template = "8D77AF0A1D4AA369482378F6FFA6232B8AE1E5CEAC4541EC1DCF80A571FC9F33"
+template = "0C0F7E193E431C743D3EE07341A9B4814FE9B93B1DFD6131EA9A0307316A2F9E"
 
 [var]
 Date = ""
@@ -145,7 +145,7 @@ Expenses = ""
 
 [sign]
 Image = ""
-CompanySigner = ""
+CompanySigner = [ ]
 `
 
 // this should generate the params.toml
@@ -181,9 +181,9 @@ My Corp Inc.
 \ ![Company Signature]({{ .Sign.Image}})
 
 ---
-
-By: {{ .Sign.CompanySigner}}
-
+{{range .Sign.CompanySigner}}
+By: {{.}}
+{{end}}
 
 ## CONSULTANT
 
@@ -224,7 +224,7 @@ const filledOutParamsToml = `# This is a TOML file containing parameters for thi
 
 [meta]
 # This must match the hash of the local template.md file. DO NOT CHANGE IT
-template = "8D77AF0A1D4AA369482378F6FFA6232B8AE1E5CEAC4541EC1DCF80A571FC9F33"
+template = "0C0F7E193E431C743D3EE07341A9B4814FE9B93B1DFD6131EA9A0307316A2F9E"
 
 [var]
 Date = "2017-05-04"
@@ -242,7 +242,7 @@ Expenses = "$200/month"
 
 [sign]
 Image = "examples/franklin.png"
-CompanySigner = "Ben Franklin, President, bf@usa.gov"
+CompanySigner = [ "Ben Franklin, President, bf@usa.gov" ]
 `
 
 // then running [claw compile] will generate this contract
