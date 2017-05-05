@@ -115,8 +115,7 @@ template = "{{ .TemplateHash}}"
 
 [sign]
 {{range .Signing}}{{.}} = ""
-{{end}}
-`
+{{end}}`
 
 //-----------------------------------------
 

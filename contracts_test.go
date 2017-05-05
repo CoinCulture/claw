@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -16,6 +19,43 @@ func TestMain(m *testing.M) {
 // that is properly formatted for templating
 // and generates a [params.toml] file consumed by the second step
 func TestWriteParamsFileFromContractTemplate(t *testing.T) {
+	// is called engagementPath in func newEngagement() but that's confusing IMO
+	const engagementName = "alice-test"
+	const sampleContract = "sampleContractTemplate.md"
+
+	defer os.RemoveAll(engagementName) // remove the dir
+	defer os.Remove(sampleContract)    // remove the temp file
+	// write the contract template
+	if err := ioutil.WriteFile(sampleContract, []byte(sampleContractTemplate), 0600); err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	// run newEngagement [claw new]
+	if err := newEngagement(engagementName, sampleContract); err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	// read in the written params.toml
+	paramsFileBytes, err := ioutil.ReadFile(filepath.Join(engagementName, "params.toml"))
+	if err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	// check that params.toml is what it should be
+	if !bytes.Equal(paramsFileBytes, []byte(sampleParamsOutput)) {
+		t.Fatalf("Bad params.toml:\nGot: %s\nExpected: %s\n", string(paramsFileBytes), sampleParamsOutput)
+	}
+
+	// check that template.md matches contract template
+	// this functionality we should revisit ...
+	templateDotMDBytes, err := ioutil.ReadFile(filepath.Join(engagementName, "template.md"))
+	if err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	if !bytes.Equal(templateDotMDBytes, []byte(sampleContractTemplate)) {
+		t.Fatalf("Bad template.md:\nGot: %s\nExpected: %s\n", string(templateDotMDBytes), sampleContractTemplate)
+	}
 }
 
 // after generating a params.toml from the sampleContract.md,
