@@ -46,8 +46,9 @@ func parseTemplate(b []byte) ContractTemplate {
 		} else if strings.HasPrefix(match, SIGN_PREFIX) {
 			signName := strings.TrimPrefix(match, SIGN_PREFIX)
 			contractTemplate.Signing = appendNew(contractTemplate.Signing, signName)
-		} else {
-			contractTemplate.Vars = appendNew(contractTemplate.Vars, match)
+		} else if strings.HasPrefix(match, VAR_PREFIX) {
+			varName := strings.TrimPrefix(match, VAR_PREFIX)
+			contractTemplate.Vars = appendNew(contractTemplate.Vars, varName)
 		}
 	}
 	return contractTemplate

@@ -45,7 +45,7 @@ By: {{ .Sign.company-signer}}
 
 \pagebreak
 
-# {{exhibit.services}}
+# {{ .Exhibit.services}}
 
 ## DESCRIPTION OF CONSULTING SERVICES
 

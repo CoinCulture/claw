@@ -118,7 +118,7 @@ By: {{ .Sign.company-signer}}
 
 \pagebreak
 
-# {{exhibit.services}}
+# {{ .Exhibit.services}}
 
 ## DESCRIPTION OF CONSULTING SERVICES
 
@@ -147,7 +147,7 @@ const sampleParamsOutput = `# This is a TOML file containing parameters for this
 
 [meta]
 # This must match the hash of the local template.md file. DO NOT CHANGE IT
-template = "5E43F71626F4D7F2F79B3650E14295760EA190DB51DF6EC9EFF4EF145E2B255E"
+template = "7E1C6EC0F1D68D1E00410C8F4DDBD99913FE23AA9C75FA5D299AE823B05DE65E"
 
 [var]
 date = ""
