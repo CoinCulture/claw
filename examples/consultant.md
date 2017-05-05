@@ -30,9 +30,9 @@ My Corp Inc.
 \ ![Company Signature]({{ .Sign.Image}})
 
 ---
-
-By: {{ .Sign.CompanySigner}}
-
+{{range .Sign.CompanySigner}}
+By: {{.}}
+{{end}}
 
 ## CONSULTANT
 
