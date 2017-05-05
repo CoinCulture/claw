@@ -46,8 +46,8 @@ type Exhibit struct {
 }
 
 type Sign struct {
-	Image         string `toml:"Image"`
-	CompanySigner string `toml:"CompanySigner"` // TODO multiple signers
+	Image         string   `toml:"Image"`
+	CompanySigner []string `toml:"CompanySigner"`
 }
 
 // for writing a contract template
@@ -130,6 +130,8 @@ func generateParamsFile(tmpl ContractTemplate) []byte {
 	return buffer.Bytes()
 }
 
+// XXX all these values will be defined in a struct anyway (to fill in contract template)
+// so we should revisit this default file
 const paramsFileDefault = `# This is a TOML file containing parameters for this contract
 
 [meta]
@@ -145,8 +147,9 @@ template = "{{ .TemplateHash}}"
 {{end}}
 
 [sign]
-{{range .Signing}}{{.}} = ""
-{{end}}`
+Image = ""
+CompanySigner = [ ]
+`
 
 //-----------------------------------------
 
