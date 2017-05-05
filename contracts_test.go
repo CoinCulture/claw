@@ -114,7 +114,7 @@ func TestOutputTypeHTML(t *testing.T) {
 
 // -------------- test constants -------------------------
 
-// examples/consultant.md should generate
+// examples/consultant.md should
 // generate exactly this file!
 const sampleParamsOutput = `# This is a TOML file containing parameters for this contract
 
@@ -164,7 +164,7 @@ Expenses = "$200/month"
 
 [sign]
 Image = "examples/franklin.png"
-CompanySigner = [ "Ben Franklin, President, bf@usa.gov" ]
+CompanySigner = [ "Ben Franklin, President, bf@usa.gov", "Zach" ]
 `
 
 // then running [claw compile] will generate this contract
@@ -202,6 +202,8 @@ My Corp Inc.
 ---
 
 By: Ben Franklin, President, bf@usa.gov
+
+By: Zach
 
 
 ## CONSULTANT

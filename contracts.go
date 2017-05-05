@@ -47,7 +47,7 @@ type Exhibit struct {
 
 type Sign struct {
 	Image         string   `toml:"Image"`
-	CompanySigner []string `toml:"CompanySigner"` // TODO multiple signers
+	CompanySigner []string `toml:"CompanySigner"`
 }
 
 // for writing a contract template
