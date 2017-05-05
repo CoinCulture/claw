@@ -14,9 +14,11 @@ import (
 )
 
 var (
-	EXHIBIT_PREFIX = "exhibit."
-	SIGN_PREFIX    = "sign."
-	VALUE_SUFFIX   = ".value"
+	VAR_PREFIX     = ".Var."
+	EXHIBIT_PREFIX = ".Exhibit."
+	SIGN_PREFIX    = ".Sign."
+	// [zr] not sure what to do with suffix ...
+	VALUE_SUFFIX = ".value"
 
 	VARIABLE_REGEX = regexp.MustCompile(`{{\s*([\w\._-]+)\s*}}`)
 )
