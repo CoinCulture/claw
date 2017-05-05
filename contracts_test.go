@@ -8,7 +8,11 @@ import (
 	"testing"
 )
 
-// NOTE: see bottom of file for the constants used in these tests
+// NOTE: see bottom of file for the additional constants used in these tests
+
+// is called engagementPath in func newEngagement() but that's confusing IMO
+const engagementName = "alice-test"
+const sampleContract = "sampleContractTemplate.md"
 
 func TestMain(m *testing.M) {
 	exitCode := m.Run()
@@ -19,12 +23,10 @@ func TestMain(m *testing.M) {
 // that is properly formatted for templating
 // and generates a [params.toml] file consumed by the second step
 func TestWriteParamsFileFromContractTemplate(t *testing.T) {
-	// is called engagementPath in func newEngagement() but that's confusing IMO
-	const engagementName = "alice-test"
-	const sampleContract = "sampleContractTemplate.md"
 
 	defer os.RemoveAll(engagementName) // remove the dir
 	defer os.Remove(sampleContract)    // remove the temp file
+
 	// write the contract template
 	if err := ioutil.WriteFile(sampleContract, []byte(sampleContractTemplate), 0600); err != nil {
 		t.Fatalf("Error: %v\n", err)
@@ -61,13 +63,49 @@ func TestWriteParamsFileFromContractTemplate(t *testing.T) {
 // after generating a params.toml from the sampleContract.md,
 // the second step is [claw compile] which generates one of:
 // a pdf, a markdown file, or an html file
-func TestOutputPDFFromCompile(t *testing.T) {
+
+func TestOutputTypeMarkdown(t *testing.T) {
+	const outputType = "md"
+
+	defer os.RemoveAll(engagementName) // remove the dir
+	defer os.Remove(sampleContract)    // remove the temp file
+
+	// write the contract template
+	if err := ioutil.WriteFile(sampleContract, []byte(sampleContractTemplate), 0600); err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	// run newEngagement [claw new]
+	if err := newEngagement(engagementName, sampleContract); err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	// a params.toml and a template.md was written by the previous func
+	// the former would normally be manually edited prior to compiling;
+	// the latter is equivalent to the  markdown file that was passed in
+	// on [claw new] when  generating the params.toml. instead, we're
+	// going to over-write the params.toml using a mock with filed in fields
+	// and test it against the compiled markdown of a contract we'd expect
+
+	if err := os.Remove(filepath.Join(engagementName, "params.toml")); err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	if err := ioutil.WriteFile(filepath.Join(engagementName, "params.toml"), []byte(filledOutParamsToml), 0600); err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
+	// the function we're actually testing
+	if err := generateContract(engagementName, outputType); err != nil {
+		t.Fatalf("Error: %v\n", err)
+	}
+
 }
 
-func TestOutputMarkdownFromCompile(t *testing.T) {
+func TestOutputTypePDF(t *testing.T) {
 }
 
-func TestOutputHTMLFromCompile(t *testing.T) {
+func TestOutputTypeHTML(t *testing.T) {
 }
 
 // -------------- test constants -------------------------
@@ -169,3 +207,28 @@ company-signer = ""
 `
 
 // TODO ^ change company-signer from "" to [] (string slice)
+
+const filledOutParamsToml = `# This is a TOML file containing parameters for this contract
+
+[meta]
+# This must match the hash of the local template.md file. DO NOT CHANGE IT
+template = "7E1C6EC0F1D68D1E00410C8F4DDBD99913FE23AA9C75FA5D299AE823B05DE65E"
+
+[var]
+date = "2017-05-04"
+consultant = "John Smith"
+schedule = "Full Time"
+start-date = "2017-06-05"
+email = "john@smith.com"
+
+
+[exhibit]
+services = "Software Development"
+compensation = "$100/hr"
+expenses = "$200/month"
+
+
+[sign]
+image = "examples/franklin.png"
+company-signer = "Ben Franklin, President, bf@usa.gov"
+`
