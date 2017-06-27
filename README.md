@@ -20,7 +20,7 @@ sudo apt-get install texlive-xetex
 
 ```
 # initaite a new contract
-claw new john examples/template/consultant.md
+claw new john examples/templates/consultant.md
 
 # edit the params
 vim john/params.toml
