@@ -11,23 +11,51 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
-
-	"github.com/spf13/cobra"
 )
 
 var (
-	EXHIBIT_PREFIX = "exhibit."
-	SIGN_PREFIX    = "sign."
-	VALUE_SUFFIX   = ".value"
+	VAR_PREFIX     = ".Var."
+	EXHIBIT_PREFIX = ".Exhibit."
+	SIGN_PREFIX    = ".Sign."
+	// [zr] not sure what to do with suffix ...
+	VALUE_SUFFIX = ".value"
 
 	VARIABLE_REGEX = regexp.MustCompile(`{{\s*([\w\._-]+)\s*}}`)
 )
 
+// for reading a contract template
 type ContractTemplate struct {
 	TemplateHash string
 	Vars         []string
 	Exhibits     []string
 	Signing      []string
+}
+
+type Var struct {
+	Date       string `toml:"Date"`
+	Consultant string `toml:"Consultant"`
+	Schedule   string `toml:"Schedule"`
+	StartDate  string `toml:"StartDate"`
+	Email      string `toml:"Email"`
+}
+
+type Exhibit struct {
+	Services     string `toml:"Services"`
+	Compensation string `toml:"Compensation"`
+	Expenses     string `toml:"Expenses"`
+}
+
+type Sign struct {
+	Image         string `toml:"Image"`
+	CompanySigner string `toml:"CompanySigner"` // TODO multiple signers
+}
+
+// for writing a contract template
+// this will be ever growing ...
+type WriteContractTemplate struct {
+	Var     *Var
+	Exhibit *Exhibit
+	Sign    *Sign
 }
 
 // return list of all variables and exhibits found in contract template
@@ -46,20 +74,16 @@ func parseTemplate(b []byte) ContractTemplate {
 		} else if strings.HasPrefix(match, SIGN_PREFIX) {
 			signName := strings.TrimPrefix(match, SIGN_PREFIX)
 			contractTemplate.Signing = appendNew(contractTemplate.Signing, signName)
-		} else {
-			contractTemplate.Vars = appendNew(contractTemplate.Vars, match)
+		} else if strings.HasPrefix(match, VAR_PREFIX) {
+			varName := strings.TrimPrefix(match, VAR_PREFIX)
+			contractTemplate.Vars = appendNew(contractTemplate.Vars, varName)
 		}
 	}
 	return contractTemplate
 }
 
 // copy the template into a new dir and instantiate params file with empty values
-func newContract(cmd *cobra.Command, args []string) error {
-	if len(args) != 2 {
-		return fmt.Errorf("new expects two args: directory for new engagement and template path")
-	}
-
-	engagementPath, tmplPath := args[0], args[1]
+func newEngagement(engagementPath, tmplPath string) error {
 
 	b, err := ioutil.ReadFile(tmplPath)
 	if err != nil {
@@ -122,99 +146,66 @@ template = "{{ .TemplateHash}}"
 
 [sign]
 {{range .Signing}}{{.}} = ""
-{{end}}
-`
+{{end}}`
 
 //-----------------------------------------
 
-func compileContract(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("compile expects one arg: name")
-	}
-
-	name := args[0]
+func generateContract(engagementName, outputType string) error {
 
 	// load the params from toml file
-	params, err := loadConfig(name)
+	params, err := loadConfig(engagementName)
 	if err != nil {
+		return err
+	}
+
+	var contractValues *WriteContractTemplate
+	var contractTemplate *template.Template
+	var buffer bytes.Buffer
+
+	// fill that struct up
+	if err := params.Unmarshal(&contractValues); err != nil {
 		return err
 	}
 
 	// read the contract template
-	b, err := ioutil.ReadFile(filepath.Join(name, "template.md"))
+	contractTemplateBytes, err := ioutil.ReadFile(filepath.Join(engagementName, "template.md"))
 	if err != nil {
 		return err
 	}
 
-	tmpl := parseTemplate(b)
-	exhibits := tmpl.Exhibits
+	contractTemplate, err = template.New("contract").Parse(string(contractTemplateBytes))
+	if err != nil {
+		return err
+	}
 
-	// substitute params into template holes
-	var missingParams []string
-	markdownOutput := VARIABLE_REGEX.ReplaceAllFunc(b, func(in []byte) []byte {
-		paramName := strings.TrimSuffix(strings.TrimPrefix(string(in), "{{"), "}}")
-
-		// if its an exhibit, we replace it with the exhibit number.
-		// if its a var, we replace it with its value
-		if strings.HasPrefix(paramName, EXHIBIT_PREFIX) {
-			exhibitName := strings.TrimPrefix(paramName, EXHIBIT_PREFIX)
-
-			if strings.HasSuffix(exhibitName, VALUE_SUFFIX) {
-				exhibitName = strings.TrimSuffix(exhibitName, VALUE_SUFFIX)
-				for _, e := range exhibits {
-					if exhibitName == e {
-						exhibitValue := params.GetString("exhibit." + exhibitName)
-						if exhibitValue != "" {
-							return []byte(exhibitValue)
-						}
-					}
-				}
-			} else {
-				for i, e := range exhibits {
-					if exhibitName == e {
-						return []byte(fmt.Sprintf("Exhibit %d", i+1))
-					}
-				}
-			}
-		} else if strings.HasPrefix(paramName, SIGN_PREFIX) {
-			signName := strings.TrimPrefix(paramName, SIGN_PREFIX)
-			paramVal := params.GetString("sign." + signName)
-			if paramVal != "" {
-				return []byte(paramVal)
-			}
-		} else {
-			paramVal := params.GetString("var." + paramName)
-			if paramVal != "" {
-				return []byte(paramVal)
-			}
-		}
-
-		missingParams = append(missingParams, paramName)
-		return []byte("----")
-	})
+	if err := contractTemplate.Execute(&buffer, *contractValues); err != nil {
+		return err
+	}
+	markdownOutput := buffer.Bytes()
 
 	// error if params is missing anything
-	if len(missingParams) > 0 {
-		return fmt.Errorf("Missing params: %v", missingParams)
-	}
+	// [zr] not sure how this will get handled by new template format ...
+	//if len(missingParams) > 0 {
+	//      return fmt.Errorf("Missing params: %v", missingParams)
+	//}
 
 	switch outputType {
 	case "md":
-		if err := ioutil.WriteFile(filepath.Join(name, "contract.md"), markdownOutput, 0600); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(engagementName, "contract.md"), markdownOutput, 0600); err != nil {
 			return err
 		}
 	case "html":
 		htmlOutput := markdown2html(markdownOutput)
-		if err := ioutil.WriteFile(filepath.Join(name, "contract.html"), htmlOutput, 0600); err != nil {
+		if err := ioutil.WriteFile(filepath.Join(engagementName, "contract.html"), htmlOutput, 0600); err != nil {
 			return err
 		}
 	case "pdf":
 		// requires the md to be written
-		mdPath := filepath.Join(name, "contract.md")
+		mdPath := filepath.Join(engagementName, "contract.md") // doesn't get removed IIRC
 		if err := ioutil.WriteFile(mdPath, markdownOutput, 0600); err != nil {
 			return err
 		}
-		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", filepath.Join(name, "contract.pdf"))
+		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", filepath.Join(engagementName, "contract.pdf"))
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
