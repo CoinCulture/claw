@@ -238,7 +238,7 @@ func reviseContract(cmd *cobra.Command, args []string) error {
   // open history file (or create history file if it doesn't exist)
   file, err := os.OpenFile("history.toml", os.O_RDWR|os.O_CREATE, 0600)
   if err != nil {
-      return err
+    return err
   }
 
   defer file.Close()
@@ -254,7 +254,7 @@ func reviseContract(cmd *cobra.Command, args []string) error {
   }
 
   // combine params, history, and template data
-  all_b := [3][]byte {params_b, template_b, history_b}
+  all_b := [3][]byte{params_b, template_b, history_b}
   byte_array := make([]byte, 3, 3)
 
   for _, element := range all_b {
@@ -273,7 +273,7 @@ func reviseContract(cmd *cobra.Command, args []string) error {
   // write hash to history file
   hfile, err := os.OpenFile("history.toml", os.O_RDWR|os.O_APPEND, 0600)
   if err != nil {
-      return err
+    return err
   }
 
   defer hfile.Close()
@@ -282,6 +282,6 @@ func reviseContract(cmd *cobra.Command, args []string) error {
     return err
   }
 
-return nil
+  return nil
 
 }
