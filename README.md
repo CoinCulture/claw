@@ -28,6 +28,9 @@ cd john
 # edit the params
 vim params.toml
 
+# save your revisions to the hash log
+claw revise
+
 # compile the markdown and output a final pdf using pandoc
 claw compile --output pdf
 ```

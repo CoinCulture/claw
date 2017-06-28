@@ -11,6 +11,7 @@ import (
   "regexp"
   "strings"
   "text/template"
+  "time"
 
   "github.com/spf13/cobra"
 )
@@ -218,4 +219,69 @@ func compileContract(cmd *cobra.Command, args []string) error {
   }
 
   return nil
+}
+
+func reviseContract(cmd *cobra.Command, args []string) error {
+
+  // read the params file
+  params_b, err := ioutil.ReadFile("params.toml")
+  if err != nil {
+    return err
+  }
+
+  // read the contract template
+  template_b, err := ioutil.ReadFile("template.md")
+  if err != nil {
+    return err
+  }
+
+  // open history file (or create history file if it doesn't exist)
+  file, err := os.OpenFile("history.toml", os.O_RDWR|os.O_CREATE, 0600)
+  if err != nil {
+      return err
+  }
+
+  defer file.Close()
+
+  if _, err = file.WriteString("// Do not modify this file yourself under any circumstances!"); err != nil {
+    return err
+  }
+
+  // read history file
+  history_b, err := ioutil.ReadFile("history.toml")
+  if err != nil {
+    return err
+  }
+
+  // combine params, history, and template data
+  all_b := [3][]byte {params_b, template_b, history_b}
+  byte_array := make([]byte, 3, 3)
+
+  for _, element := range all_b {
+    for _, b := range element {
+      byte_array = append(byte_array, b)
+    }
+  }
+
+  // hash params, history, and template data
+  h := sha256.New()
+  h.Write(byte_array)
+  t := time.Now()
+  hashtime := fmt.Sprintf("\n%s: '%X'", t, h.Sum(nil))
+  fmt.Println("A hash has been added to your history file; your changes are secure.")
+
+  // write hash to history file
+  hfile, err := os.OpenFile("history.toml", os.O_RDWR|os.O_APPEND, 0600)
+  if err != nil {
+      return err
+  }
+
+  defer hfile.Close()
+
+  if _, err = hfile.WriteString(hashtime); err != nil {
+    return err
+  }
+
+return nil
+
 }
