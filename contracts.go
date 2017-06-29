@@ -85,6 +85,13 @@ func newContract(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// generate history file
+	hfstring := "// Do not modify this file yourself under any circumstances!"
+
+	if err := ioutil.WriteFile(filepath.Join(engagementPath, "history.toml"), []byte(hfstring), 0600); err != nil {
+		return err
+	}
+
 	paramsFile := generateParamsFile(tmpl)
 
 	// write the params file
@@ -110,7 +117,7 @@ func generateParamsFile(tmpl ContractTemplate) []byte {
 const paramsFileDefault = `# This is a TOML file containing parameters for this contract
 
 [meta]
-# This must match the hash of the local template.md file. DO NOT CHANGE IT
+# This hash must match the hash of the local template.md file. DO NOT MAKE CHANGES TO THIS HASH.
 template = "{{ .TemplateHash}}"
 
 [var]
@@ -235,18 +242,6 @@ func reviseContract(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// open history file (or create history file if it doesn't exist)
-	file, err := os.OpenFile("history.toml", os.O_RDWR|os.O_CREATE, 0600)
-	if err != nil {
-		return err
-	}
-
-	defer file.Close()
-
-	if _, err = file.WriteString("// Do not modify this file yourself under any circumstances!"); err != nil {
-		return err
-	}
-
 	// read history file
 	history_b, err := ioutil.ReadFile("history.toml")
 	if err != nil {
@@ -258,9 +253,7 @@ func reviseContract(cmd *cobra.Command, args []string) error {
 	byte_array := make([]byte, 3, 3)
 
 	for _, element := range all_b {
-		for _, b := range element {
-			byte_array = append(byte_array, b)
-		}
+		byte_array = append(byte_array, element...)
 	}
 
 	// hash params, history, and template data
@@ -268,7 +261,6 @@ func reviseContract(cmd *cobra.Command, args []string) error {
 	h.Write(byte_array)
 	t := time.Now()
 	hashtime := fmt.Sprintf("\n%s: '%X'", t, h.Sum(nil))
-	fmt.Println("A hash has been added to your history file; your changes are secure.")
 
 	// write hash to history file
 	hfile, err := os.OpenFile("history.toml", os.O_RDWR|os.O_APPEND, 0600)
@@ -281,6 +273,8 @@ func reviseContract(cmd *cobra.Command, args []string) error {
 	if _, err = hfile.WriteString(hashtime); err != nil {
 		return err
 	}
+
+	fmt.Println("A revision hash has been added to your history file; your changes are secure.")
 
 	return nil
 
