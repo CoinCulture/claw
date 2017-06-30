@@ -128,20 +128,15 @@ template = "{{ .TemplateHash}}"
 //-----------------------------------------
 
 func compileContract(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("compile expects one arg: name")
-	}
-
-	name := args[0]
 
 	// load the params from toml file
-	params, err := loadConfig(name)
+	params, err := loadConfig()
 	if err != nil {
 		return err
 	}
 
 	// read the contract template
-	b, err := ioutil.ReadFile(filepath.Join(name, "template.md"))
+	b, err := ioutil.ReadFile("template.md")
 	if err != nil {
 		return err
 	}
@@ -200,21 +195,21 @@ func compileContract(cmd *cobra.Command, args []string) error {
 
 	switch outputType {
 	case "md":
-		if err := ioutil.WriteFile(filepath.Join(name, "contract.md"), markdownOutput, 0600); err != nil {
+		if err := ioutil.WriteFile("contract.md", markdownOutput, 0600); err != nil {
 			return err
 		}
 	case "html":
 		htmlOutput := markdown2html(markdownOutput)
-		if err := ioutil.WriteFile(filepath.Join(name, "contract.html"), htmlOutput, 0600); err != nil {
+		if err := ioutil.WriteFile("contract.html", htmlOutput, 0600); err != nil {
 			return err
 		}
 	case "pdf":
 		// requires the md to be written
-		mdPath := filepath.Join(name, "contract.md")
+		mdPath := "contract.md"
 		if err := ioutil.WriteFile(mdPath, markdownOutput, 0600); err != nil {
 			return err
 		}
-		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", filepath.Join(name, "contract.pdf"))
+		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", "contract.pdf")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
