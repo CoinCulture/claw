@@ -20,11 +20,11 @@ func appendNew(list []string, name string) []string {
 }
 
 // load params config
-func loadConfig() (*viper.Viper, error) {
+func loadConfig(rootDir string) (*viper.Viper, error) {
 	config := viper.New()
 	config.SetConfigName("params")
 	config.SetConfigType("toml")
-	config.AddConfigPath(".")
+	config.AddConfigPath(rootDir)
 	err := config.ReadInConfig()
 	if err != nil {
 		return nil, err
