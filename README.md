@@ -22,6 +22,9 @@ sudo apt-get install texlive-xetex
 # initaite a new contract
 claw new john examples/templates/consultant.md
 
+# change to the newly created directory
+cd john
+
 # edit the params
 vim params.toml
 
@@ -29,5 +32,5 @@ vim params.toml
 claw revise
 
 # compile the markdown and output a final pdf using pandoc
-claw compile --output pdf john
+claw compile --output pdf
 ```
