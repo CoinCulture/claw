@@ -86,9 +86,9 @@ func newContract(cmd *cobra.Command, args []string) error {
 	}
 
 	// generate history file
-	hfstring := "// Do not modify this file yourself under any circumstances!"
+	hfString := "// Do not modify this file yourself under any circumstances!"
 
-	if err := ioutil.WriteFile(filepath.Join(engagementPath, "history.toml"), []byte(hfstring), 0600); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(engagementPath, "history.toml"), []byte(hfString), 0600); err != nil {
 		return err
 	}
 
@@ -236,46 +236,46 @@ func compileContract(cmd *cobra.Command, args []string) error {
 func reviseContract(cmd *cobra.Command, args []string) error {
 
 	// read the params file
-	params_b, err := ioutil.ReadFile("params.toml")
+	paramsB, err := ioutil.ReadFile("params.toml")
 	if err != nil {
 		return err
 	}
 
 	// read the contract template
-	template_b, err := ioutil.ReadFile("template.md")
+	templateB, err := ioutil.ReadFile("template.md")
 	if err != nil {
 		return err
 	}
 
 	// read history file
-	history_b, err := ioutil.ReadFile("history.toml")
+	historyB, err := ioutil.ReadFile("history.toml")
 	if err != nil {
 		return err
 	}
 
 	// combine params, history, and template data
-	all_b := [3][]byte{params_b, template_b, history_b}
-	byte_array := make([]byte, 3, 3)
+	allB := [3][]byte{paramsB, templateB, historyB}
+	byteArray := make([]byte, 3, 3)
 
-	for _, element := range all_b {
-		byte_array = append(byte_array, element...)
+	for _, element := range allB {
+		byteArray = append(byteArray, element...)
 	}
 
 	// hash params, history, and template data
 	h := sha256.New()
-	h.Write(byte_array)
+	h.Write(byteArray)
 	t := time.Now()
-	hashtime := fmt.Sprintf("\n%s: '%X'", t, h.Sum(nil))
+	hashTime := fmt.Sprintf("\n%s: '%X'", t, h.Sum(nil))
 
 	// write hash to history file
-	hfile, err := os.OpenFile("history.toml", os.O_RDWR|os.O_APPEND, 0600)
+	hFile, err := os.OpenFile("history.toml", os.O_RDWR|os.O_APPEND, 0600)
 	if err != nil {
 		return err
 	}
 
-	defer hfile.Close()
+	defer hFile.Close()
 
-	if _, err = hfile.WriteString(hashtime); err != nil {
+	if _, err = hFile.WriteString(hashTime); err != nil {
 		return err
 	}
 
