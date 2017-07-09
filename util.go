@@ -20,6 +20,7 @@ func appendNew(list []string, name string) []string {
 }
 
 // load params config
+
 func loadConfig() (*viper.Viper, error) {
 	config := viper.New()
 	config.SetConfigName("params")

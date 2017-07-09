@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -84,6 +85,13 @@ func newContract(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// generate history file
+	hfString := "// Do not modify this file yourself under any circumstances!"
+
+	if err := ioutil.WriteFile(filepath.Join(engagementPath, "history.toml"), []byte(hfString), 0600); err != nil {
+		return err
+	}
+
 	paramsFile := generateParamsFile(tmpl)
 
 	// write the params file
@@ -109,7 +117,7 @@ func generateParamsFile(tmpl ContractTemplate) []byte {
 const paramsFileDefault = `# This is a TOML file containing parameters for this contract
 
 [meta]
-# This must match the hash of the local template.md file. DO NOT CHANGE IT
+# This hash must match the hash of the local template.md file. DO NOT MAKE CHANGES TO THIS HASH.
 template = "{{ .TemplateHash}}"
 
 [var]
@@ -218,4 +226,56 @@ func compileContract(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func reviseContract(cmd *cobra.Command, args []string) error {
+
+	// read the params file
+	paramsB, err := ioutil.ReadFile("params.toml")
+	if err != nil {
+		return err
+	}
+
+	// read the contract template
+	templateB, err := ioutil.ReadFile("template.md")
+	if err != nil {
+		return err
+	}
+
+	// read history file
+	historyB, err := ioutil.ReadFile("history.toml")
+	if err != nil {
+		return err
+	}
+
+	// combine params, history, and template data
+	allB := [3][]byte{paramsB, templateB, historyB}
+	byteArray := make([]byte, 3, 3)
+
+	for _, element := range allB {
+		byteArray = append(byteArray, element...)
+	}
+
+	// hash params, history, and template data
+	h := sha256.New()
+	h.Write(byteArray)
+	t := time.Now()
+	hashTime := fmt.Sprintf("\n%s: '%X'", t, h.Sum(nil))
+
+	// write hash to history file
+	hFile, err := os.OpenFile("history.toml", os.O_RDWR|os.O_APPEND, 0600)
+	if err != nil {
+		return err
+	}
+
+	defer hFile.Close()
+
+	if _, err = hFile.WriteString(hashTime); err != nil {
+		return err
+	}
+
+	fmt.Println("A revision hash has been added to your history file; your changes are secure.")
+
+	return nil
+
 }
