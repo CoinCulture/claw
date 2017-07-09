@@ -29,11 +29,18 @@ var compileCmd = &cobra.Command{
 	RunE:  compileContract,
 }
 
+var reviseCmd = &cobra.Command{
+	Use:   "revise",
+	Short: "Hash modifications to params and template",
+	RunE:  reviseContract,
+}
+
 func init() {
 	compileCmd.Flags().StringVar(&outputType, "output", "md", "Output type: md | html | pdf")
 
 	RootCmd.AddCommand(newCmd)
 	RootCmd.AddCommand(compileCmd)
+	RootCmd.AddCommand(reviseCmd)
 }
 
 func main() {

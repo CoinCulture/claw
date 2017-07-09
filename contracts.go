@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -84,6 +85,13 @@ func newContract(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// generate history file
+	hfString := "// Do not modify this file yourself under any circumstances!"
+
+	if err := ioutil.WriteFile(filepath.Join(engagementPath, "history.toml"), []byte(hfString), 0600); err != nil {
+		return err
+	}
+
 	paramsFile := generateParamsFile(tmpl)
 
 	// write the params file
@@ -109,7 +117,7 @@ func generateParamsFile(tmpl ContractTemplate) []byte {
 const paramsFileDefault = `# This is a TOML file containing parameters for this contract
 
 [meta]
-# This must match the hash of the local template.md file. DO NOT CHANGE IT
+# This hash must match the hash of the local template.md file. DO NOT MAKE CHANGES TO THIS HASH.
 template = "{{ .TemplateHash}}"
 
 [var]
@@ -128,20 +136,15 @@ template = "{{ .TemplateHash}}"
 //-----------------------------------------
 
 func compileContract(cmd *cobra.Command, args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("compile expects one arg: name")
-	}
-
-	name := args[0]
 
 	// load the params from toml file
-	params, err := loadConfig(name)
+	params, err := loadConfig()
 	if err != nil {
 		return err
 	}
 
 	// read the contract template
-	b, err := ioutil.ReadFile(filepath.Join(name, "template.md"))
+	b, err := ioutil.ReadFile("template.md")
 	if err != nil {
 		return err
 	}
@@ -200,21 +203,21 @@ func compileContract(cmd *cobra.Command, args []string) error {
 
 	switch outputType {
 	case "md":
-		if err := ioutil.WriteFile(filepath.Join(name, "contract.md"), markdownOutput, 0600); err != nil {
+		if err := ioutil.WriteFile("contract.md", markdownOutput, 0600); err != nil {
 			return err
 		}
 	case "html":
 		htmlOutput := markdown2html(markdownOutput)
-		if err := ioutil.WriteFile(filepath.Join(name, "contract.html"), htmlOutput, 0600); err != nil {
+		if err := ioutil.WriteFile("contract.html", htmlOutput, 0600); err != nil {
 			return err
 		}
 	case "pdf":
 		// requires the md to be written
-		mdPath := filepath.Join(name, "contract.md")
+		mdPath := "contract.md"
 		if err := ioutil.WriteFile(mdPath, markdownOutput, 0600); err != nil {
 			return err
 		}
-		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", filepath.Join(name, "contract.pdf"))
+		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", "contract.pdf")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
@@ -223,4 +226,56 @@ func compileContract(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+func reviseContract(cmd *cobra.Command, args []string) error {
+
+	// read the params file
+	paramsB, err := ioutil.ReadFile("params.toml")
+	if err != nil {
+		return err
+	}
+
+	// read the contract template
+	templateB, err := ioutil.ReadFile("template.md")
+	if err != nil {
+		return err
+	}
+
+	// read history file
+	historyB, err := ioutil.ReadFile("history.toml")
+	if err != nil {
+		return err
+	}
+
+	// combine params, history, and template data
+	allB := [3][]byte{paramsB, templateB, historyB}
+	byteArray := make([]byte, 3, 3)
+
+	for _, element := range allB {
+		byteArray = append(byteArray, element...)
+	}
+
+	// hash params, history, and template data
+	h := sha256.New()
+	h.Write(byteArray)
+	t := time.Now()
+	hashTime := fmt.Sprintf("\n%s: '%X'", t, h.Sum(nil))
+
+	// write hash to history file
+	hFile, err := os.OpenFile("history.toml", os.O_RDWR|os.O_APPEND, 0600)
+	if err != nil {
+		return err
+	}
+
+	defer hFile.Close()
+
+	if _, err = hFile.WriteString(hashTime); err != nil {
+		return err
+	}
+
+	fmt.Println("A revision hash has been added to your history file; your changes are secure.")
+
+	return nil
+
 }
