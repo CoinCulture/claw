@@ -217,7 +217,7 @@ func compileContract(cmd *cobra.Command, args []string) error {
 		if err := ioutil.WriteFile(mdPath, markdownOutput, 0600); err != nil {
 			return err
 		}
-		cmd := exec.Command("pandoc", mdPath, "--latex-engine=xelatex", "-o", "contract.pdf")
+		cmd := exec.Command("pandoc", mdPath, "--pdf-engine=xelatex", "-o", "contract.pdf")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		return cmd.Run()
