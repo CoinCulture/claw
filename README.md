@@ -19,7 +19,7 @@ sudo apt-get install texlive-xetex
 ## Run
 
 ```
-# initaite a new contract
+# initiate a new contract
 claw new john examples/templates/consultant.md
 
 # change to the newly created directory
