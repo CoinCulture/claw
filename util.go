@@ -34,5 +34,5 @@ func loadConfig() (*viper.Viper, error) {
 }
 
 func markdown2html(b []byte) []byte {
-	return blackfriday.MarkdownBasic(b)
+	return blackfriday.Run(b, blackfriday.WithNoExtensions())
 }
