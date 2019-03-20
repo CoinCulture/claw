@@ -4,6 +4,7 @@
 
 ```
 go get github.com/CoinCulture/claw
+dep ensure
 ```
 
 You will also need `pandoc` and `xelatex` to output pdfs.
